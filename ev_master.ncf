@@ -1,0 +1,31 @@
+node_capability_file;
+LIN_language_version = "2.2";
+master ev_master {
+	general {
+		LIN_protocol_version = "2.2";
+		supplier = 0x4854;
+		function = 0x5432;
+		variant  = 0;
+		bitrate = 20 kbps;
+		timebase = 5 ms;
+		jitter = 0.10 ms;
+	}
+
+	slaves {
+		speedometer;
+		energy_management;
+	}
+
+	frames {
+	}
+
+	encoding {
+	}
+
+	schedule_tables {
+		default {
+			energy_status_frame delay 15 ms;
+			speedometer_frame delay 15 ms;
+		}
+	}
+}
