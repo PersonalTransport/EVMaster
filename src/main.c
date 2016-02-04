@@ -40,6 +40,8 @@
 struct l_irqmask l_sys_irq_disable() {
     IEC0bits.U1RXIE = 0;
     IEC0bits.U1TXIE = 0;
+    IFS0bits.U1TXIF = 0;
+    IFS0bits.U1RXIF = 0;
     struct l_irqmask mask = {IPC2bits.U1RXIP,IPC3bits.U1TXIP};
     return mask;
 }
@@ -56,9 +58,26 @@ void l_sys_irq_restore(struct l_irqmask previous) {
 
 static void master_task_5ms() {
     l_u8 i = l_sch_tick_UART1();
+    l_u16 bv = 0;
+    l_u16 uc = 0;
+    if(l_flg_tst_energy_status_frame()) {
+        l_flg_clr_energy_status_frame();
+        l_flg_clr_battery_voltage();
+        l_flg_clr_usage_current();
+        bv = l_u16_rd_battery_voltage();
+        uc = l_u16_rd_usage_current();
+    }
 }
 
 int main() {
+    AD1PCFGL = 0xFFFF;
+    
+    TRISBbits.TRISB15 = 0;
+    TRISBbits.TRISB14 = 0;
+    
+    PORTBbits.RB15 = 0;
+    PORTBbits.RB14 = 0;
+    
     // Initialize the LIN interface
     if(l_sys_init())
         return -1;
@@ -84,6 +103,7 @@ int main() {
     l_sch_set_UART1(default,0);
 
     while(true) {
+        
     }
     return -1;
 }
@@ -96,14 +116,12 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt() {
+    
     if(IFS0bits.U1TXIF) {
         // Clear TX interrupt flag.
         IFS0bits.U1TXIF = 0;
 
         l_ifc_tx_UART1();
-
-        if(U1STAbits.FERR)
-            U1STAbits.FERR = 0;
     }
 }
 
@@ -113,8 +131,5 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt() {
         IFS0bits.U1RXIF = 0;
 
         l_ifc_rx_UART1();
-
-        if(U1STAbits.FERR)
-            U1STAbits.FERR = 0;
     }
 }
