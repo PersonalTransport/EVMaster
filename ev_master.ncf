@@ -12,20 +12,37 @@ master ev_master {
 	}
 
 	slaves {
-		speedometer;
+		lighting;
 		energy_management;
 	}
 
 	frames {
+		publish lighting_frame {
+			length = 2;
+			signals {
+				lighting_state {
+					size       = 2;
+					init_value = 0;
+					offset 	   = 0;
+					signaling_encoding;
+				}
+			}
+		}
 	}
 
 	encoding {
+		signaling_encoding {
+			logical_value, 0, "OFF";
+			logical_value, 1, "RIGHT";
+			logical_value, 2, "LEFT";
+			logical_value, 3, "HAZARDS";
+		}
 	}
 
 	schedule_tables {
 		default {
 			energy_status_frame delay 15 ms;
-			//speedometer_frame delay 15 ms;
+			lighting_frame delay 15 ms;
 		}
 	}
 }

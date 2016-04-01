@@ -13,18 +13,20 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../gen/ev_master.c</itemPath>
       <itemPath>../src/main.c</itemPath>
+      <itemPath>../gen/ev_master.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>../ev_master.ncf</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
     <Elem>../gen</Elem>
     <Elem>../src</Elem>
+    <Elem>gen</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -53,8 +55,8 @@
         </loading>
       </compileType>
       <makeCustomizationType>
-        <makeCustomizationPreStepEnabled>false</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep></makeCustomizationPreStep>
+        <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 master  -o ../gen ../ev_master.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>

@@ -29,7 +29,7 @@
 #pragma config FWPSA = PR128            // WDT Prescaler (Prescaler ratio of 1:128)
 #pragma config WINDIS = OFF             // Windowed WDT (Standard Watchdog Timer enabled,(Windowed-mode is disabled))
 #pragma config FWDTEN = OFF             // Watchdog Timer (Watchdog Timer is disabled)
-#pragma config ICS = PGx2               // Emulator Pin Placement Select bits (Emulator functions are shared with PGEC1/PGED1)
+#pragma config ICS = PGx1               // Emulator Pin Placement Select bits (Emulator functions are shared with PGEC1/PGED1)
 #pragma config GWRP = OFF               // General Segment Write Protect (Writes to program memory are allowed)
 #pragma config GCP = OFF                // General Segment Code Protect (Code protection is disabled)
 #pragma config JTAGEN = OFF             // JTAG Port Enable (JTAG port is disabled)
@@ -57,16 +57,7 @@ void l_sys_irq_restore(struct l_irqmask previous) {
 }
 
 static void master_task_5ms() {
-    l_u8 i = l_sch_tick_UART1();
-    l_u16 bv = 0;
-    l_u16 uc = 0;
-    if(l_flg_tst_energy_status_frame()) {
-        l_flg_clr_energy_status_frame();
-        l_flg_clr_battery_voltage();
-        l_flg_clr_usage_current();
-        bv = l_u16_rd_battery_voltage();
-        uc = l_u16_rd_usage_current();
-    }
+    l_sch_tick_UART1();
 }
 
 int main() {
@@ -86,7 +77,7 @@ int main() {
     if(l_ifc_init_UART1())
         return -1;
 
-    struct l_irqmask irqmask = {4,4};
+    struct l_irqmask irqmask = {6,6};
     l_sys_irq_restore(irqmask);
 
     T1CONbits.TON = 1;
@@ -103,7 +94,6 @@ int main() {
     l_sch_set_UART1(default,0);
 
     while(true) {
-        
     }
     return -1;
 }
