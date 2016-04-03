@@ -7,7 +7,7 @@
 
 // CONFIG3
 #pragma config WPFP = WPFP63            // Write Protection Flash Page Segment Boundary (Highest Page (same as page 21))
-#pragma config SOSCSEL = SOSC           // Secondary Oscillator Pin Mode Select (SOSC pins in Default (high drive-strength) Oscillator Mode)
+#pragma config SOSCSEL = IO             // Secondary Oscillator Pin Mode Select (SOSC pins in Default (high drive-strength) Oscillator Mode)
 #pragma config WUTSEL = LEG             // Voltage Regulator Wake-up Time Select (Default regulator start-up time used)
 #pragma config WPDIS = WPDIS            // Segment Write Protection Disable (Segmented code protection disabled)
 #pragma config WPCFG = WPCFGDIS         // Write Protect Configuration Page Select (Last page and Flash Configuration words are unprotected)
@@ -32,7 +32,7 @@
 #pragma config ICS = PGx1               // Emulator Pin Placement Select bits (Emulator functions are shared with PGEC1/PGED1)
 #pragma config GWRP = OFF               // General Segment Write Protect (Writes to program memory are allowed)
 #pragma config GCP = OFF                // General Segment Code Protect (Code protection is disabled)
-#pragma config JTAGEN = OFF             // JTAG Port Enable (JTAG port is disabled)
+#pragma config JTAGEN = ON             // JTAG Port Enable (JTAG port is disabled)
 
 #include <xc.h>
 #include <ev_master.h>
@@ -62,13 +62,13 @@ static void master_task_5ms() {
 
 int main() {
     AD1PCFGL = 0xFFFF;
-    
+
     TRISBbits.TRISB15 = 0;
     TRISBbits.TRISB14 = 0;
-    
+
     PORTBbits.RB15 = 0;
     PORTBbits.RB14 = 0;
-    
+
     // Initialize the LIN interface
     if(l_sys_init())
         return -1;
@@ -106,7 +106,7 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt() {
-    
+
     if(IFS0bits.U1TXIF) {
         // Clear TX interrupt flag.
         IFS0bits.U1TXIF = 0;
