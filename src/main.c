@@ -32,10 +32,49 @@
 #pragma config ICS = PGx1               // Emulator Pin Placement Select bits (Emulator functions are shared with PGEC1/PGED1)
 #pragma config GWRP = OFF               // General Segment Write Protect (Writes to program memory are allowed)
 #pragma config GCP = OFF                // General Segment Code Protect (Code protection is disabled)
-#pragma config JTAGEN = ON             // JTAG Port Enable (JTAG port is disabled)
+#pragma config JTAGEN = OFF             // JTAG Port Enable (JTAG port is disabled)
 
 #include <xc.h>
 #include <ev_master.h>
+
+static void master_task_5ms() {
+    l_sch_tick_UART1();
+}
+
+int main() {
+    // Initialize the LIN interface
+    if(l_sys_init())
+        return -1;
+
+    // Initialize the interface
+    if(l_ifc_init_UART1())
+        return -1;
+    
+    // Set UART TX to interrupt level 6
+    // Set UART RX to interrupt level 6
+    struct l_irqmask irqmask = {6,6};
+    l_sys_irq_restore(irqmask);
+    
+    // Setup a 5ms timer
+    T1CONbits.TON = 1;
+    T1CONbits.TSIDL = 0;
+    T1CONbits.TGATE = 0;
+    T1CONbits.TCKPS = 0;
+    T1CONbits.TSYNC = 0;
+    T1CONbits.TCS = 0;
+    PR1 = 10000;
+    
+    // Set timer interrupt level to 7
+    IEC0bits.T1IE = 1;
+    IPC0bits.T1IP = 7;
+
+    // Use the default schedule table defined in ev_master.ncf
+    l_sch_set_UART1(default,0);
+
+    while(true) {
+    }
+    return -1;
+}
 
 struct l_irqmask l_sys_irq_disable() {
     IEC0bits.U1RXIE = 0;
@@ -56,48 +95,6 @@ void l_sys_irq_restore(struct l_irqmask previous) {
     IEC0bits.U1TXIE = 1;
 }
 
-static void master_task_5ms() {
-    l_sch_tick_UART1();
-}
-
-int main() {
-    AD1PCFGL = 0xFFFF;
-
-    TRISBbits.TRISB15 = 0;
-    TRISBbits.TRISB14 = 0;
-
-    PORTBbits.RB15 = 0;
-    PORTBbits.RB14 = 0;
-
-    // Initialize the LIN interface
-    if(l_sys_init())
-        return -1;
-
-    // Initialize the interface
-    if(l_ifc_init_UART1())
-        return -1;
-
-    struct l_irqmask irqmask = {6,6};
-    l_sys_irq_restore(irqmask);
-
-    T1CONbits.TON = 1;
-    T1CONbits.TSIDL = 0;
-    T1CONbits.TGATE = 0;
-    T1CONbits.TCKPS = 0;
-    T1CONbits.TSYNC = 0;
-    T1CONbits.TCS = 0;
-    PR1 = 10000;
-
-    IEC0bits.T1IE = 1;
-    IPC0bits.T1IP = 7;
-
-    l_sch_set_UART1(default,0);
-
-    while(true) {
-    }
-    return -1;
-}
-
 void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
     if(IFS0bits.T1IF) {
         IFS0bits.T1IF = 0;
@@ -106,9 +103,7 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt() {
-
     if(IFS0bits.U1TXIF) {
-        // Clear TX interrupt flag.
         IFS0bits.U1TXIF = 0;
 
         l_ifc_tx_UART1();
@@ -117,9 +112,8 @@ void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt() {
 
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt() {
     if(IFS0bits.U1RXIF) {
-        // Clear RX interrupt flag.
         IFS0bits.U1RXIF = 0;
-
+        
         l_ifc_rx_UART1();
     }
 }
