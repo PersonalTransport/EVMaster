@@ -113,6 +113,9 @@ void __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt()
         IFS0bits.U1TXIF = 0;
 
         l_ifc_tx_UART1();
+
+        if (U1STAbits.FERR)
+            U1STAbits.FERR = 0;
     }
 }
 
@@ -122,5 +125,8 @@ void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt()
         IFS0bits.U1RXIF = 0;
 
         l_ifc_rx_UART1();
+
+        if (U1STAbits.FERR)
+            U1STAbits.FERR = 0;
     }
 }
