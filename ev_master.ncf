@@ -40,7 +40,7 @@ master ev_master {
 	}
 
 	schedule_tables {
-		default {
+		normal {
 			energy_status_frame delay 15 ms;
 			lighting_frame delay 15 ms;
 		}
