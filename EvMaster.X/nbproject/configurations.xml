@@ -76,7 +76,7 @@
       </compileType>
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 master  -o ../gen ../ev_master.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf</makeCustomizationPreStep>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 master  -o ../gen ../ev_master.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
@@ -168,7 +168,7 @@
         <property key="general-code-protect" value="no_code_protect"/>
         <property key="general-write-protect" value="no_write_protect"/>
         <property key="generate-cross-reference-file" value="false"/>
-        <property key="heap-size" value="512"/>
+        <property key="heap-size" value="4096"/>
         <property key="input-libraries" value=""/>
         <property key="linker-stack" value="true"/>
         <property key="linker-symbols" value=""/>

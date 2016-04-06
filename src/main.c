@@ -16,13 +16,13 @@
 // CONFIG2
 #pragma config POSCMOD = HS // Primary Oscillator Select (HS Oscillator mode selected)
 #pragma config I2C1SEL = PRI // I2C1 Pin Select bit (Use default SCL1/SDA1 pins for I2C1 )
-#pragma config IOL1WAY = ON // IOLOCK One-Way Set Enable (Once set, the IOLOCK bit cannot be cleared)
+#pragma config IOL1WAY = OFF // IOLOCK One-Way Set Enable (The IOLOCK bit can be set and cleared using the unlock sequence)
 #pragma config OSCIOFNC = ON // OSCO Pin Configuration (OSCO pin functions as port I/O (RA3))
 #pragma config FCKSM = CSDCMD // Clock Switching and Fail-Safe Clock Monitor (Sw Disabled, Mon Disabled)
 #pragma config FNOSC = PRIPLL // Initial Oscillator Select (Primary Oscillator with PLL module (XTPLL, HSPLL, ECPLL))
 #pragma config PLL96MHZ = ON // 96MHz PLL Startup Select (96 MHz PLL Startup is enabled automatically on start-up)
 #pragma config PLLDIV = DIV3 // USB 96 MHz PLL Prescaler Select (Oscillator input divided by 3 (12 MHz input))
-#pragma config IESO = OFF // Internal External Switchover (IESO mode (Two-Speed Start-up) disabled)
+#pragma config IESO = ON // Internal External Switchover (IESO mode (Two-Speed Start-up) enabled)
 
 // CONFIG1
 #pragma config WDTPS = PS32768 // Watchdog Timer Postscaler (1:32,768)
@@ -97,7 +97,7 @@ int main()
     T1CONbits.TCKPS = 0;
     T1CONbits.TSYNC = 0;
     T1CONbits.TCS = 0;
-    PR1 = 10000;
+    PR1 = 20000;
 
     // Set timer interrupt level to 7
     IEC0bits.T1IE = 1;
