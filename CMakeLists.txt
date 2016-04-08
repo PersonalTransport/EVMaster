@@ -18,7 +18,7 @@ set(HEADERS
     include/system.h
     include/usb_config.h
     include/usb_message.h
-    
+
     gen/ev_master.h
 
     /opt/microchip/mla/framework/usb/inc/usb_host.h
@@ -33,11 +33,12 @@ set(NODE_FILES
 )
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/gen/ev_master.h ${CMAKE_CURRENT_SOURCE_DIR}/gen/ev_master.c
-                   COMMAND LIN -t PIC${CMAKE_SYSTEM_PROCESSOR} -i uart1 master ${NODE_FILES}
+                   COMMAND LIN -t PIC${CMAKE_SYSTEM_PROCESSOR} -i uart1 ${NODE_FILES}
                    DEPENDS ${NODE_FILES}
                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(EvMaster ${SOURCES} ${HEADERS} ${NODE_FILES})
+target_compile_definitions(EvMaster PUBLIC -DFCY=6000000)
 target_compile_options(EvMaster PUBLIC -std=gnu99)
 target_include_directories(EvMaster PUBLIC include gen /opt/microchip/mla/framework/usb/inc)
 generate_mplabx_project(EvMaster)
