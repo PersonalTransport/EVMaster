@@ -73,17 +73,18 @@ enum {
 
 static void master_task_5ms()
 {
-    switch (current_schedule) {
-    case CONFIGURATION_SCHEDULE: {
-        if (l_sch_tick_UART1() == 1) {
+    l_u8 next_entry = l_sch_tick_UART1();
+    if(next_entry == 1) {
+        switch (current_schedule) {
+        case CONFIGURATION_SCHEDULE: {
             current_schedule = NORMAL_SCHEDULE;
             l_sch_set_UART1(normal_schedule, 0);
+            break;
         }
-        break;
-    }
-    case NORMAL_SCHEDULE: {
-        l_sch_tick_UART1();
-    }
+        case NORMAL_SCHEDULE: {
+            break;
+        }
+        }
     }
 }
 
