@@ -73,7 +73,6 @@ enum {
 
 static void master_task_5ms()
 {
-    l_sch_tick_UART1();
     switch (current_schedule) {
     case CONFIGURATION_SCHEDULE: {
         if (l_sch_tick_UART1() == 1) {
