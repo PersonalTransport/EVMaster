@@ -13,6 +13,7 @@ master ev_master {
 
 	slaves {
 		lighting;
+		speedometer;
 		energy_management;
 	}
 
@@ -51,9 +52,16 @@ master ev_master {
 	}
 
 	schedule_tables {
-		normal {
-			energy_status_frame delay 15 ms;
+		normal_schedule {
 			lighting_control_frame delay 15 ms;
+			lighting_error_frame delay 15 ms;
+			speedometer_frame delay 15 ms;
+			energy_status_frame delay 15 ms;
 		}
+
+        configuration_schedule {
+			AssignFrameIdRange {speedometer,0} delay 15 ms;
+			AssignFrameIdRange {energy_management,0} delay 15 ms;
+        }
 	}
 }
