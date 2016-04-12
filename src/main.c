@@ -66,9 +66,26 @@ ANDROID_ACCESSORY_INFORMATION device_info = {
     sizeof(serial)
 };
 
+enum {
+    CONFIGURATION_SCHEDULE,
+    NORMAL_SCHEDULE
+} current_schedule;
+
 static void master_task_5ms()
 {
     l_sch_tick_UART1();
+    switch (current_schedule) {
+    case CONFIGURATION_SCHEDULE: {
+        if (l_sch_tick_UART1() == 1) {
+            current_schedule = NORMAL_SCHEDULE;
+            l_sch_set_UART1(normal_schedule, 0);
+        }
+        break;
+    }
+    case NORMAL_SCHEDULE: {
+        l_sch_tick_UART1();
+    }
+    }
 }
 
 int main()
@@ -104,7 +121,8 @@ int main()
     IPC0bits.T1IP = 7;
 
     // Use the default schedule table defined in ev_master.ncf
-    l_sch_set_UART1(normal, 0);
+    current_schedule = NORMAL_SCHEDULE;
+    l_sch_set_UART1(normal_schedule, 0);
 
     while (true) {
         USBHostTasks();
