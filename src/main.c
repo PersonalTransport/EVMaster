@@ -39,33 +39,6 @@
 #include <stdint.h>
 #include <ev_master.h>
 
-#include <usb.h>
-#include <usb_host_android.h>
-
-#define MAX_ALLOWED_CURRENT 500 //mA
-
-static char manufacturer[] = "Personal Transportation Solutions";
-static char model[] = "EvMaster";
-static char description[] = "LIN master node";
-static char version[] = "0.0.1";
-static char uri[] = "N/A";
-static char serial[] = "N/A";
-
-ANDROID_ACCESSORY_INFORMATION device_info = {
-    manufacturer,
-    sizeof(manufacturer),
-    model,
-    sizeof(model),
-    description,
-    sizeof(description),
-    version,
-    sizeof(version),
-    uri,
-    sizeof(uri),
-    serial,
-    sizeof(serial)
-};
-
 enum {
     CONFIGURATION_SCHEDULE,
     NORMAL_SCHEDULE
@@ -103,10 +76,6 @@ int main()
     struct l_irqmask irqmask = { 6, 6 };
     l_sys_irq_restore(irqmask);
 
-    // Setup the AOA and USB
-    AndroidAppStart(&device_info);
-    USBHostInit(0);
-
     // Setup a 5ms timer
     T1CONbits.TON = 1;
     T1CONbits.TSIDL = 0;
@@ -125,8 +94,6 @@ int main()
     l_sch_set_UART1(normal_schedule, 0);
 
     while (true) {
-        USBHostTasks();
-        AndroidTasks();
     }
     return -1;
 }
@@ -150,44 +117,6 @@ void l_sys_irq_restore(struct l_irqmask previous)
     IPC3bits.U1TXIP = previous.tx_level;
     IFS0bits.U1RXIF = 0;
     IEC0bits.U1TXIE = 1;
-}
-
-bool usb_application_event_handler(uint8_t address, USB_EVENT event, void* data, uint32_t size)
-{
-    switch ((int)event) {
-    case EVENT_VBUS_REQUEST_POWER: {
-        if (((USB_VBUS_POWER_EVENT_DATA*)data)->current <= (MAX_ALLOWED_CURRENT / 2))
-            return true;
-        break;
-    }
-
-    case EVENT_VBUS_RELEASE_POWER:
-    case EVENT_HUB_ATTACH:
-    case EVENT_UNSUPPORTED_DEVICE:
-    case EVENT_CANNOT_ENUMERATE:
-    case EVENT_CLIENT_INIT_ERROR:
-    case EVENT_OUT_OF_MEMORY:
-    case EVENT_UNSPECIFIED_ERROR:
-    case EVENT_DETACH:
-    case EVENT_ANDROID_DETACH: {
-        // TODO save the handle
-        return true;
-    }
-    case EVENT_ANDROID_ATTACH: {
-        // TODO release the handle
-        return true;
-        break;
-    }
-    default: {
-        break;
-    }
-    }
-    return false;
-}
-
-bool usb_application_data_event_handler(uint8_t address, USB_EVENT event, void* data, uint32_t size)
-{
-    return false;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt()
@@ -220,9 +149,4 @@ void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt()
         if (U1STAbits.FERR)
             U1STAbits.FERR = 0;
     }
-}
-
-void __attribute__((interrupt, auto_psv)) _USB1Interrupt()
-{
-    USB_HostInterruptHandler();
 }
