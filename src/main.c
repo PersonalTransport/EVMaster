@@ -39,22 +39,19 @@
 #include <stdint.h>
 #include <ev_master.h>
 
-enum {
-    CONFIGURATION_SCHEDULE,
-    NORMAL_SCHEDULE
-} current_schedule;
+enum l_schedule_handle current_schedule = configuration_schedule;
 
 static void master_task_5ms()
 {
     l_u8 next_entry = l_sch_tick_UART1();
-    if(next_entry == 1) {
+    if (next_entry == 1) {
         switch (current_schedule) {
-        case CONFIGURATION_SCHEDULE: {
-            current_schedule = NORMAL_SCHEDULE;
-            l_sch_set_UART1(normal_schedule, 0);
+        case configuration_schedule: {
+            current_schedule = normal_schedule;
+            l_sch_set_UART1(current_schedule, 0);
             break;
         }
-        case NORMAL_SCHEDULE: {
+        default: {
             break;
         }
         }
@@ -89,9 +86,8 @@ int main()
     IEC0bits.T1IE = 1;
     IPC0bits.T1IP = 7;
 
-    // Use the default schedule table defined in ev_master.ncf
-    current_schedule = NORMAL_SCHEDULE;
-    l_sch_set_UART1(normal_schedule, 0);
+    current_schedule = configuration_schedule;
+    l_sch_set_UART1(current_schedule, 0);
 
     while (true) {
     }
@@ -131,11 +127,7 @@ void __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt()
 {
     if (IFS0bits.U1TXIF) {
         IFS0bits.U1TXIF = 0;
-
         l_ifc_tx_UART1();
-
-        if (U1STAbits.FERR)
-            U1STAbits.FERR = 0;
     }
 }
 
@@ -143,10 +135,6 @@ void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt()
 {
     if (IFS0bits.U1RXIF) {
         IFS0bits.U1RXIF = 0;
-
         l_ifc_rx_UART1();
-
-        if (U1STAbits.FERR)
-            U1STAbits.FERR = 0;
     }
 }

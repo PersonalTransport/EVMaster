@@ -60,8 +60,15 @@ master ev_master {
 		}
 
         configuration_schedule {
+			AssignNAD {lighting} delay 15 ms;
+			AssignNAD {speedometer} delay 15 ms;
+			AssignNAD {energy_management} delay 15 ms;
+			AssignFrameIdRange {lighting,0} delay 15 ms;
 			AssignFrameIdRange {speedometer,0} delay 15 ms;
 			AssignFrameIdRange {energy_management,0} delay 15 ms;
+			SaveConfiguration {lighting} delay 15 ms;
+			SaveConfiguration {speedometer} delay 15 ms;
+			SaveConfiguration {energy_management} delay 15 ms;
         }
 	}
 }
