@@ -14,15 +14,15 @@
 #pragma config WPEND = WPENDMEM // Segment Write Protection End Page Select (Write Protect from WPFP to the last page of memory)
 
 // CONFIG2
-#pragma config POSCMOD = HS // Primary Oscillator Select (HS Oscillator mode selected)
+#pragma config POSCMOD = NONE // Primary Oscillator Select (Primary Oscillator disabled)
 #pragma config I2C1SEL = PRI // I2C1 Pin Select bit (Use default SCL1/SDA1 pins for I2C1 )
 #pragma config IOL1WAY = OFF // IOLOCK One-Way Set Enable (The IOLOCK bit can be set and cleared using the unlock sequence)
 #pragma config OSCIOFNC = ON // OSCO Pin Configuration (OSCO pin functions as port I/O (RA3))
 #pragma config FCKSM = CSDCMD // Clock Switching and Fail-Safe Clock Monitor (Sw Disabled, Mon Disabled)
-#pragma config FNOSC = PRIPLL // Initial Oscillator Select (Primary Oscillator with PLL module (XTPLL, HSPLL, ECPLL))
+#pragma config FNOSC = FRCPLL // Initial Oscillator Select (Fast RC Oscillator with Postscaler and PLL module (FRCPLL))
 #pragma config PLL96MHZ = ON // 96MHz PLL Startup Select (96 MHz PLL Startup is enabled automatically on start-up)
-#pragma config PLLDIV = DIV3 // USB 96 MHz PLL Prescaler Select (Oscillator input divided by 3 (12 MHz input))
-#pragma config IESO = ON // Internal External Switchover (IESO mode (Two-Speed Start-up) enabled)
+#pragma config PLLDIV = NODIV // USB 96 MHz PLL Prescaler Select (Oscillator input used directly (4 MHz input))
+#pragma config IESO = OFF // Internal External Switchover (IESO mode (Two-Speed Start-up) disabled)
 
 // CONFIG1
 #pragma config WDTPS = PS32768 // Watchdog Timer Postscaler (1:32,768)
@@ -47,8 +47,8 @@
 static char manufacturer[] = "Personal Transportation Solutions";
 static char model[] = "EvMaster";
 static char description[] = "LIN master node";
-static char version[] = "0.0.1";
-static char uri[] = "N/A";
+static char version[] = "0.1";
+static char uri[] = "http://ptransportation.com/";
 static char serial[] = "N/A";
 
 ANDROID_ACCESSORY_INFORMATION device_info = {
@@ -65,6 +65,9 @@ ANDROID_ACCESSORY_INFORMATION device_info = {
     serial,
     sizeof(serial)
 };
+
+static void* device_handle = NULL;
+static bool device_attached = false;
 
 enum l_schedule_handle current_schedule = configuration_schedule;
 
@@ -87,6 +90,13 @@ static void master_task_5ms()
 
 int main()
 {
+    {
+        unsigned int pll_startup_counter = 600;
+        CLKDIVbits.PLLEN = 1;
+        while (pll_startup_counter--)
+            ;
+    }
+
     // Initialize the LIN interface
     if (l_sys_init())
         return -1;
@@ -95,9 +105,9 @@ int main()
     if (l_ifc_init_UART1())
         return -1;
 
-    // Set UART TX to interrupt level 6
-    // Set UART RX to interrupt level 6
-    struct l_irqmask irqmask = { 6, 6 };
+    // Set UART TX to interrupt level 4
+    // Set UART RX to interrupt level 4
+    struct l_irqmask irqmask = { 4, 4 };
     l_sys_irq_restore(irqmask);
 
     // Setup the AOA and USB
@@ -108,14 +118,14 @@ int main()
     T1CONbits.TON = 1;
     T1CONbits.TSIDL = 0;
     T1CONbits.TGATE = 0;
-    T1CONbits.TCKPS = 0;
+    T1CONbits.TCKPS = 1;
     T1CONbits.TSYNC = 0;
     T1CONbits.TCS = 0;
-    PR1 = 20000;
+    PR1 = FCY / 8ul / 200ul;
 
-    // Set timer interrupt level to 7
+    // Set timer interrupt level to 5
     IEC0bits.T1IE = 1;
-    IPC0bits.T1IP = 7;
+    IPC0bits.T1IP = 5;
 
     current_schedule = configuration_schedule;
     l_sch_set_UART1(current_schedule, 0);
@@ -165,13 +175,13 @@ bool usb_application_event_handler(uint8_t address, USB_EVENT event, void* data,
     case EVENT_UNSPECIFIED_ERROR:
     case EVENT_DETACH:
     case EVENT_ANDROID_DETACH: {
-        // TODO save the handle
+        device_attached = false;
         return true;
     }
     case EVENT_ANDROID_ATTACH: {
-        // TODO release the handle
+        device_attached = true;
+        device_handle = data;
         return true;
-        break;
     }
     default: {
         break;
