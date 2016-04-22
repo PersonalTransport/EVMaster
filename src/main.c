@@ -40,8 +40,17 @@
 #include <ev_master.h>
 
 #include <usb.h>
+#include <usb_message.h>
 #include <usb_host_android.h>
 
+#define HEAD_LIGHT_STATE_SID 0
+#define SIGNAL_LIGHT_STATE_SID 1
+#define AXLE_RPM_SID 2
+#define BATTERY_VOLTAGE_SID 3
+#define USAGE_CURRENT_SID 4
+#define CHARGING_CURRENT_SID 5
+
+#define USB_BUFFER_SIZE 64
 #define MAX_ALLOWED_CURRENT 500 //mA
 
 static char manufacturer[] = "Personal Transportation Solutions";
@@ -66,8 +75,16 @@ ANDROID_ACCESSORY_INFORMATION device_info = {
     sizeof(serial)
 };
 
-static void* device_handle = NULL;
 static bool device_attached = false;
+static void* device_handle = NULL;
+
+l_bool read_in_progress = false;
+uint32_t read_size = 0;
+l_u8 read_buffer[USB_BUFFER_SIZE];
+
+l_bool write_in_progress = false;
+uint32_t write_size = 0;
+l_u8 write_buffer[USB_BUFFER_SIZE];
 
 enum l_schedule_handle current_schedule = configuration_schedule;
 
@@ -93,8 +110,8 @@ int main()
     {
         unsigned int pll_startup_counter = 600;
         CLKDIVbits.PLLEN = 1;
-        while (pll_startup_counter--)
-            ;
+        while (pll_startup_counter--) {
+        }
     }
 
     // Initialize the LIN interface
@@ -130,9 +147,104 @@ int main()
     current_schedule = configuration_schedule;
     l_sch_set_UART1(current_schedule, 0);
 
+    uint8_t error_code;
     while (true) {
         USBHostTasks();
         AndroidTasks();
+
+        if (!device_attached)
+            continue;
+
+        if (read_in_progress) {
+            if (AndroidAppIsReadComplete(device_handle, &error_code, &read_size)) {
+                read_in_progress = false;
+            }
+        }
+        else {
+            uint32_t index = 0;
+            while (index < read_size) {
+                struct usb_message* message = (struct usb_message*)(read_buffer + index);
+                index += sizeof(struct usb_message_header) + message->header.length;
+                // TODO check command
+                switch (message->header.sid) {
+                case HEAD_LIGHT_STATE_SID: {
+                    l_u8_wr_head_light_state(*((l_u8*)message->data));
+                    break;
+                }
+                case SIGNAL_LIGHT_STATE_SID: {
+                    l_u8_wr_signal_light_state(*((l_u8*)message->data));
+                    break;
+                }
+                }
+            }
+
+            if (device_attached) {
+                read_in_progress = (AndroidAppRead(device_handle, read_buffer, USB_BUFFER_SIZE) == USB_SUCCESS);
+            }
+        }
+
+        if (!device_attached)
+            continue;
+
+        if (write_in_progress) {
+            uint32_t size;
+            if (AndroidAppIsWriteComplete(device_handle, &error_code, &size)) {
+                if (size != write_size) {
+                    // TODO error??
+                }
+                write_size = 0;
+                write_in_progress = false;
+            }
+        }
+        else {
+            while (write_size < (USB_BUFFER_SIZE - MAX_USB_MESSAGE_SIZE)) {
+                struct usb_message* message = (struct usb_message*)(write_buffer + write_size);
+                message->header.comm = USBMESSAGE_COMM_SET_VAR;
+                if (l_flg_tst_signal_light_state()) {
+                    l_flg_clr_signal_light_state();
+                    message->header.sid = SIGNAL_LIGHT_STATE_SID;
+                    message->header.length = 1;
+                    *((l_u8*)message->data) = l_u8_rd_signal_light_state();
+                }
+                else if (l_flg_tst_head_light_state()) {
+                    l_flg_clr_head_light_state();
+                    message->header.sid = HEAD_LIGHT_STATE_SID;
+                    message->header.length = 1;
+                    *((l_u8*)message->data) = l_u8_rd_head_light_state();
+                }
+                else if (l_flg_tst_axle_rpm()) {
+                    l_flg_clr_axle_rpm();
+                    message->header.sid = AXLE_RPM_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_axle_rpm();
+                }
+                else if (l_flg_tst_battery_voltage()) {
+                    l_flg_clr_battery_voltage();
+                    message->header.sid = BATTERY_VOLTAGE_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_battery_voltage();
+                }
+                else if (l_flg_tst_usage_current()) {
+                    l_flg_clr_usage_current();
+                    message->header.sid = USAGE_CURRENT_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_usage_current();
+                }
+                else if (l_flg_tst_charging_current()) {
+                    l_flg_clr_charging_current();
+                    message->header.sid = CHARGING_CURRENT_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_charging_current();
+                }
+                else {
+                    break;
+                }
+            }
+
+            if (device_attached && write_size > 0) {
+                write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
+            }
+        }
     }
     return -1;
 }

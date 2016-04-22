@@ -38,7 +38,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/gen/ev_master.h ${CMAKE_CU
                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(EvMaster ${SOURCES} ${HEADERS} ${NODE_FILES})
-target_compile_definitions(EvMaster PUBLIC -DFCY=6000000)
+target_compile_definitions(EvMaster PUBLIC -DFCY=16000000)
 target_compile_options(EvMaster PUBLIC -std=gnu99)
 target_include_directories(EvMaster PUBLIC include gen /opt/microchip/mla/framework/usb/inc)
 generate_mplabx_project(EvMaster)
