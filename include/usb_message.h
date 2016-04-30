@@ -24,6 +24,7 @@ struct __attribute__((packed)) usb_message_header {
     uint8_t comm; // Defines the type of instruction (set, get, warn)
     uint32_t sid; // Defines what the command is about (lights, blinkers, battery, speed, etc.)
     uint8_t length; // Defines the length of the data
+    
 };
 
 struct __attribute__((packed)) usb_message {

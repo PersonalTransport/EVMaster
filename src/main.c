@@ -39,6 +39,15 @@
 #include <stdint.h>
 #include <ev_master.h>
 
+#include <libpic30.h>
+#include <stdio.h>
+#define RS LATBbits.LATB9
+#define EN LATBbits.LATB8
+#define D4 LATAbits.LATA0
+#define D5 LATAbits.LATA1
+#define D6 LATAbits.LATA2
+#define D7 LATAbits.LATA3
+#include <lcd.h>
 #include <usb.h>
 #include <usb_message.h>
 #include <usb_host_android.h>
@@ -105,6 +114,7 @@ static void master_task_5ms()
     }
 }
 
+static char str[64];
 int main()
 {
     {
@@ -130,6 +140,16 @@ int main()
     // Setup the AOA and USB
     AndroidAppStart(&device_info);
     USBHostInit(0);
+    
+    TRISBbits.TRISB8 = 0;
+    TRISBbits.TRISB9 = 0;
+    TRISAbits.TRISA0 = 0; // D4
+    TRISAbits.TRISA1 = 0; // D5
+    TRISAbits.TRISA2 = 0; // D6
+    TRISAbits.TRISA3 = 0; // D7
+    
+    
+    Lcd_Init();
 
     // Setup a 5ms timer
     T1CONbits.TON = 1;
@@ -148,6 +168,7 @@ int main()
     l_sch_set_UART1(current_schedule, 0);
 
     uint8_t error_code;
+    
     while (true) {
         USBHostTasks();
         AndroidTasks();
@@ -165,6 +186,7 @@ int main()
             while (index < read_size) {
                 struct usb_message* message = (struct usb_message*)(read_buffer + index);
                 index += sizeof(struct usb_message_header) + message->header.length;
+                Lcd_Clear();
                 // TODO check command
                 switch (message->header.sid) {
                 case HEAD_LIGHT_STATE_SID: {
@@ -172,6 +194,13 @@ int main()
                     break;
                 }
                 case SIGNAL_LIGHT_STATE_SID: {
+                    sprintf(str,"%lx",message->header.sid);
+                    Lcd_Set_Cursor(1,1);
+                    Lcd_Write_String(str);
+                    
+                    sprintf(str,"%x",message->header.length);
+                    Lcd_Set_Cursor(2,1);
+                    Lcd_Write_String(str);
                     l_u8_wr_signal_light_state(*((l_u8*)message->data));
                     break;
                 }
@@ -183,7 +212,7 @@ int main()
             }
         }
 
-        if (!device_attached)
+        /*if (!device_attached)
             continue;
 
         if (write_in_progress) {
@@ -244,7 +273,7 @@ int main()
             if (device_attached && write_size > 0) {
                 write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
             }
-        }
+        }*/
     }
     return -1;
 }
