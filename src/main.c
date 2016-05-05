@@ -34,13 +34,11 @@
 #pragma config GCP = OFF // General Segment Code Protect (Code protection is disabled)
 #pragma config JTAGEN = OFF // JTAG Port Enable (JTAG port is disabled)
 
-#include <xc.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <ev_master.h>
-
 #include <libpic30.h>
 #include <stdio.h>
+#include <xc.h>
+
 #define RS LATBbits.LATB9
 #define EN LATBbits.LATB8
 #define D4 LATAbits.LATA0
@@ -48,9 +46,10 @@
 #define D6 LATAbits.LATA2
 #define D7 LATAbits.LATA3
 #include <lcd.h>
+
 #include <usb.h>
-#include <usb_message.h>
 #include <usb_host_android.h>
+#include <usb_message.h>
 
 #define HEAD_LIGHT_STATE_SID 999653166
 #define SIGNAL_LIGHT_STATE_SID 2308980954
@@ -60,7 +59,7 @@
 #define CHARGING_CURRENT_SID 3484793322
 
 #define USB_BUFFER_SIZE 64
-#define MAX_ALLOWED_CURRENT 500 //mA
+#define MAX_ALLOWED_CURRENT 500 // mA
 
 static char manufacturer[] = "Personal Transportation Solutions";
 static char model[] = "EvMaster";
@@ -140,15 +139,14 @@ int main()
     // Setup the AOA and USB
     AndroidAppStart(&device_info);
     USBHostInit(0);
-    
+
     TRISBbits.TRISB8 = 0;
     TRISBbits.TRISB9 = 0;
     TRISAbits.TRISA0 = 0; // D4
     TRISAbits.TRISA1 = 0; // D5
     TRISAbits.TRISA2 = 0; // D6
     TRISAbits.TRISA3 = 0; // D7
-    
-    
+
     Lcd_Init();
 
     // Setup a 5ms timer
@@ -168,7 +166,7 @@ int main()
     l_sch_set_UART1(current_schedule, 0);
 
     uint8_t error_code;
-    
+
     while (true) {
         USBHostTasks();
         AndroidTasks();
@@ -180,13 +178,21 @@ int main()
             if (AndroidAppIsReadComplete(device_handle, &error_code, &read_size)) {
                 read_in_progress = false;
             }
-        }
-        else {
+        } else {
             uint32_t index = 0;
             while (index < read_size) {
                 struct usb_message* message = (struct usb_message*)(read_buffer + index);
                 index += sizeof(struct usb_message_header) + message->header.length;
+
                 Lcd_Clear();
+                sprintf(str, "%lx", message->header.sid);
+                Lcd_Set_Cursor(1, 1);
+                Lcd_Write_String(str);
+
+                sprintf(str, "%x", *((l_u8*)message->data));
+                Lcd_Set_Cursor(2, 1);
+                Lcd_Write_String(str);
+
                 // TODO check command
                 switch (message->header.sid) {
                 case HEAD_LIGHT_STATE_SID: {
@@ -194,13 +200,6 @@ int main()
                     break;
                 }
                 case SIGNAL_LIGHT_STATE_SID: {
-                    sprintf(str,"%lx",message->header.sid);
-                    Lcd_Set_Cursor(1,1);
-                    Lcd_Write_String(str);
-                    
-                    sprintf(str,"%x",message->header.length);
-                    Lcd_Set_Cursor(2,1);
-                    Lcd_Write_String(str);
                     l_u8_wr_signal_light_state(*((l_u8*)message->data));
                     break;
                 }
@@ -212,7 +211,7 @@ int main()
             }
         }
 
-        /*if (!device_attached)
+        if (!device_attached)
             continue;
 
         if (write_in_progress) {
@@ -224,8 +223,7 @@ int main()
                 write_size = 0;
                 write_in_progress = false;
             }
-        }
-        else {
+        } else {
             while (write_size < (USB_BUFFER_SIZE - MAX_USB_MESSAGE_SIZE)) {
                 struct usb_message* message = (struct usb_message*)(write_buffer + write_size);
                 message->header.comm = USBMESSAGE_COMM_SET_VAR;
@@ -234,38 +232,32 @@ int main()
                     message->header.sid = SIGNAL_LIGHT_STATE_SID;
                     message->header.length = 1;
                     *((l_u8*)message->data) = l_u8_rd_signal_light_state();
-                }
-                else if (l_flg_tst_head_light_state()) {
+                } else if (l_flg_tst_head_light_state()) {
                     l_flg_clr_head_light_state();
                     message->header.sid = HEAD_LIGHT_STATE_SID;
                     message->header.length = 1;
                     *((l_u8*)message->data) = l_u8_rd_head_light_state();
-                }
-                else if (l_flg_tst_axle_rpm()) {
+                } else if (l_flg_tst_axle_rpm()) {
                     l_flg_clr_axle_rpm();
                     message->header.sid = AXLE_RPM_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_axle_rpm();
-                }
-                else if (l_flg_tst_battery_voltage()) {
+                } else if (l_flg_tst_battery_voltage()) {
                     l_flg_clr_battery_voltage();
                     message->header.sid = BATTERY_VOLTAGE_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_battery_voltage();
-                }
-                else if (l_flg_tst_usage_current()) {
+                } else if (l_flg_tst_usage_current()) {
                     l_flg_clr_usage_current();
                     message->header.sid = USAGE_CURRENT_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_usage_current();
-                }
-                else if (l_flg_tst_charging_current()) {
+                } else if (l_flg_tst_charging_current()) {
                     l_flg_clr_charging_current();
                     message->header.sid = CHARGING_CURRENT_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_charging_current();
-                }
-                else {
+                } else {
                     break;
                 }
             }
@@ -273,7 +265,7 @@ int main()
             if (device_attached && write_size > 0) {
                 write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
             }
-        }*/
+        }
     }
     return -1;
 }

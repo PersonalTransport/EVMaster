@@ -15,6 +15,7 @@ master ev_master {
 		lighting;
 		speedometer;
 		energy_management;
+		motor_controller;
 	}
 
 	frames {
@@ -53,6 +54,7 @@ master ev_master {
 
 	schedule_tables {
 		normal_schedule {
+			motor_controller_status_frame delay 15 ms;
 			lighting_control_frame delay 15 ms;
 			lighting_error_frame delay 15 ms;
 			speedometer_frame delay 15 ms;
@@ -60,12 +62,15 @@ master ev_master {
 		}
 
         configuration_schedule {
+			AssignNAD {motor_controller} delay 15 ms;
 			AssignNAD {lighting} delay 15 ms;
 			AssignNAD {speedometer} delay 15 ms;
 			AssignNAD {energy_management} delay 15 ms;
+			AssignFrameIdRange {motor_controller,0} delay 15 ms;
 			AssignFrameIdRange {lighting,0} delay 15 ms;
 			AssignFrameIdRange {speedometer,0} delay 15 ms;
 			AssignFrameIdRange {energy_management,0} delay 15 ms;
+			SaveConfiguration {motor_controller} delay 15 ms;
 			SaveConfiguration {lighting} delay 15 ms;
 			SaveConfiguration {speedometer} delay 15 ms;
 			SaveConfiguration {energy_management} delay 15 ms;

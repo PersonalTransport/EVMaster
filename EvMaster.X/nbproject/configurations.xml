@@ -76,7 +76,7 @@
       </compileType>
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o ../gen ../ev_master.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o ../gen ../ev_master.ncf ../../MotorControllerNode/motor_controller.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
