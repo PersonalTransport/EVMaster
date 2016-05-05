@@ -51,6 +51,8 @@
 #include <usb_host_android.h>
 #include <usb_message.h>
 
+#define MOTOR_CONTROLLER_DUTY_CYCLE_SID 1398608173
+#define MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID 316875851
 #define HEAD_LIGHT_STATE_SID 999653166
 #define SIGNAL_LIGHT_STATE_SID 2308980954
 #define AXLE_RPM_SID 3524390749
@@ -227,16 +229,16 @@ int main()
             while (write_size < (USB_BUFFER_SIZE - MAX_USB_MESSAGE_SIZE)) {
                 struct usb_message* message = (struct usb_message*)(write_buffer + write_size);
                 message->header.comm = USBMESSAGE_COMM_SET_VAR;
-                if (l_flg_tst_signal_light_state()) {
-                    l_flg_clr_signal_light_state();
-                    message->header.sid = SIGNAL_LIGHT_STATE_SID;
-                    message->header.length = 1;
-                    *((l_u8*)message->data) = l_u8_rd_signal_light_state();
-                } else if (l_flg_tst_head_light_state()) {
-                    l_flg_clr_head_light_state();
-                    message->header.sid = HEAD_LIGHT_STATE_SID;
-                    message->header.length = 1;
-                    *((l_u8*)message->data) = l_u8_rd_head_light_state();
+                if (l_flg_tst_motor_controller_duty_cycle()) {
+                    l_flg_clr_motor_controller_duty_cycle();
+                    message->header.sid = MOTOR_CONTROLLER_DUTY_CYCLE_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_motor_controller_duty_cycle();
+                } else if (l_flg_tst_motor_controller_igbt_temperature()) {
+                    l_flg_clr_motor_controller_igbt_temperature();
+                    message->header.sid = MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID;
+                    message->header.length = 2;
+                    *((l_u16*)message->data) = l_u16_rd_motor_controller_igbt_temperature();
                 } else if (l_flg_tst_axle_rpm()) {
                     l_flg_clr_axle_rpm();
                     message->header.sid = AXLE_RPM_SID;
