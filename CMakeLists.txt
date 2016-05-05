@@ -27,6 +27,7 @@ set(HEADERS
 
 set(NODE_FILES
     ev_master.ncf
+    ../MotorControllerNode/motor_controller.ncf
     ../LightingNode/lighting.ncf
     ../SpeedometerNode/speedometer.ncf
     ../EnergyManagementNode/energy_management.ncf
