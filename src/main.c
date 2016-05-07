@@ -273,7 +273,6 @@ int main()
                     break;
                 }
             }
-            l_sys_irq_restore(mask);
 
             if (device_attached && write_size > 0) {
                 write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
