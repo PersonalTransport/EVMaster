@@ -51,14 +51,14 @@
 #include <usb_host_android.h>
 #include <usb_message.h>
 
-#define MOTOR_CONTROLLER_DUTY_CYCLE_SID 1398608173
-#define MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID 316875851
-#define HEAD_LIGHT_STATE_SID 999653166
-#define SIGNAL_LIGHT_STATE_SID 2308980954
-#define AXLE_RPM_SID 3524390749
-#define BATTERY_VOLTAGE_SID 4052165617
-#define USAGE_CURRENT_SID 1512302620
-#define CHARGING_CURRENT_SID 3484793322
+#define MOTOR_CONTROLLER_DUTY_CYCLE_SID 1398608173ul
+#define MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID 316875851ul
+#define HEAD_LIGHT_STATE_SID 999653166ul
+#define SIGNAL_LIGHT_STATE_SID 2308980954ul
+#define AXLE_RPM_SID 3524390749ul
+#define BATTERY_VOLTAGE_SID 4052165617ul
+#define USAGE_CURRENT_SID 1512302620ul
+#define CHARGING_CURRENT_SID 3484793322ul
 
 #define USB_BUFFER_SIZE 64
 #define MAX_ALLOWED_CURRENT 500 // mA
@@ -186,15 +186,6 @@ int main()
                 struct usb_message* message = (struct usb_message*)(read_buffer + index);
                 index += sizeof(struct usb_message_header) + message->header.length;
 
-                Lcd_Clear();
-                sprintf(str, "%lx", message->header.sid);
-                Lcd_Set_Cursor(1, 1);
-                Lcd_Write_String(str);
-
-                sprintf(str, "%x", *((l_u8*)message->data));
-                Lcd_Set_Cursor(2, 1);
-                Lcd_Write_String(str);
-
                 // TODO check command
                 switch (message->header.sid) {
                 case HEAD_LIGHT_STATE_SID: {
@@ -234,35 +225,55 @@ int main()
                     message->header.sid = MOTOR_CONTROLLER_DUTY_CYCLE_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_motor_controller_duty_cycle();
+                    write_size += sizeof(struct usb_message_header) + message->header.length;
+
+                    Lcd_Clear();
+                    sprintf(str, "%lx", message->header.sid);
+                    Lcd_Set_Cursor(1, 1);
+                    Lcd_Write_String(str);
+
+                    sprintf(str, "%x", *((l_u16*)message->data));
+                    Lcd_Set_Cursor(2, 1);
+                    Lcd_Write_String(str);
                 } else if (l_flg_tst_motor_controller_igbt_temperature()) {
                     l_flg_clr_motor_controller_igbt_temperature();
                     message->header.sid = MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_motor_controller_igbt_temperature();
-                } else if (l_flg_tst_axle_rpm()) {
+                    write_size += sizeof(struct usb_message_header) + message->header.length;
+                } /*else if (l_flg_tst_axle_rpm()) {
+                    write_size += sizeof(struct usb_message_header);
                     l_flg_clr_axle_rpm();
                     message->header.sid = AXLE_RPM_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_axle_rpm();
+                    write_size += message->header.length;
                 } else if (l_flg_tst_battery_voltage()) {
+                    write_size += sizeof(struct usb_message_header);
                     l_flg_clr_battery_voltage();
                     message->header.sid = BATTERY_VOLTAGE_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_battery_voltage();
+                    write_size += message->header.length;
                 } else if (l_flg_tst_usage_current()) {
+                    write_size += sizeof(struct usb_message_header);
                     l_flg_clr_usage_current();
                     message->header.sid = USAGE_CURRENT_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_usage_current();
+                    write_size += message->header.length;
                 } else if (l_flg_tst_charging_current()) {
+                    write_size += sizeof(struct usb_message_header);
                     l_flg_clr_charging_current();
                     message->header.sid = CHARGING_CURRENT_SID;
                     message->header.length = 2;
                     *((l_u16*)message->data) = l_u16_rd_charging_current();
-                } else {
+                    write_size += message->header.length;
+                } */ else {
                     break;
                 }
             }
+            l_sys_irq_restore(mask);
 
             if (device_attached && write_size > 0) {
                 write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
