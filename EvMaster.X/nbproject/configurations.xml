@@ -4,17 +4,17 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="MLA" projectFiles="true">
-        <logicalFolder name="f1" displayName="USB" projectFiles="true">
-          <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host.h</itemPath>
-          <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host_android.h</itemPath>
-        </logicalFolder>
+      <logicalFolder name="f2" displayName="LIN" projectFiles="true">
+        <itemPath>../gen/ev_master.h</itemPath>
       </logicalFolder>
-      <itemPath>../gen/ev_master.h</itemPath>
-      <itemPath>../include/system.h</itemPath>
-      <itemPath>../include/system_config.h</itemPath>
-      <itemPath>../include/usb_config.h</itemPath>
-      <itemPath>../include/usb_message.h</itemPath>
+      <logicalFolder name="f1" displayName="USB" projectFiles="true">
+        <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host.h</itemPath>
+        <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host_android.h</itemPath>
+        <itemPath>../include/system.h</itemPath>
+        <itemPath>../include/usb_config.h</itemPath>
+        <itemPath>../include/system_config.h</itemPath>
+        <itemPath>../gen/ev_master_aoa.h</itemPath>
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,15 +23,16 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="MLA" projectFiles="true">
-        <logicalFolder name="f1" displayName="USB" projectFiles="true">
-          <itemPath>/opt/microchip/mla/framework/usb/src/usb_host.c</itemPath>
-          <itemPath>/opt/microchip/mla/framework/usb/src/usb_host_android.c</itemPath>
-        </logicalFolder>
+      <logicalFolder name="f2" displayName="LIN" projectFiles="true">
+        <itemPath>../gen/ev_master.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="USB" projectFiles="true">
+        <itemPath>/opt/microchip/mla/framework/usb/src/usb_host.c</itemPath>
+        <itemPath>/opt/microchip/mla/framework/usb/src/usb_host_android.c</itemPath>
+        <itemPath>../src/usb_config.c</itemPath>
+        <itemPath>../gen/ev_master_aoa.c</itemPath>
       </logicalFolder>
       <itemPath>../src/main.c</itemPath>
-      <itemPath>../gen/ev_master.c</itemPath>
-      <itemPath>../src/usb_config.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -76,7 +77,7 @@
       </compileType>
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o ../gen ../ev_master.ncf ../../MotorControllerNode/motor_controller.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o ../gen -aoa ../ev_master.ncf ../../MotorControllerNode/motor_controller.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
@@ -168,7 +169,7 @@
         <property key="general-code-protect" value="no_code_protect"/>
         <property key="general-write-protect" value="no_write_protect"/>
         <property key="generate-cross-reference-file" value="false"/>
-        <property key="heap-size" value="2048"/>
+        <property key="heap-size" value="1024"/>
         <property key="input-libraries" value=""/>
         <property key="linker-stack" value="true"/>
         <property key="linker-symbols" value=""/>
@@ -307,6 +308,7 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="USB" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

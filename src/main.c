@@ -35,66 +35,8 @@
 #pragma config JTAGEN = OFF // JTAG Port Enable (JTAG port is disabled)
 
 #include <ev_master.h>
-#include <libpic30.h>
-#include <stdio.h>
+#include <ev_master_aoa.h>
 #include <xc.h>
-
-#define RS LATBbits.LATB9
-#define EN LATBbits.LATB8
-#define D4 LATAbits.LATA0
-#define D5 LATAbits.LATA1
-#define D6 LATAbits.LATA2
-#define D7 LATAbits.LATA3
-#include <lcd.h>
-
-#include <usb.h>
-#include <usb_host_android.h>
-#include <usb_message.h>
-
-#define MOTOR_CONTROLLER_DUTY_CYCLE_SID 1398608173ul
-#define MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID 316875851ul
-#define HEAD_LIGHT_STATE_SID 999653166ul
-#define SIGNAL_LIGHT_STATE_SID 2308980954ul
-#define AXLE_RPM_SID 3524390749ul
-#define BATTERY_VOLTAGE_SID 4052165617ul
-#define USAGE_CURRENT_SID 1512302620ul
-#define CHARGING_CURRENT_SID 3484793322ul
-
-#define USB_BUFFER_SIZE 64
-#define MAX_ALLOWED_CURRENT 500 // mA
-
-static char manufacturer[] = "Personal Transportation Solutions";
-static char model[] = "EvMaster";
-static char description[] = "LIN master node";
-static char version[] = "0.1";
-static char uri[] = "http://ptransportation.com/";
-static char serial[] = "N/A";
-
-ANDROID_ACCESSORY_INFORMATION device_info = {
-    manufacturer,
-    sizeof(manufacturer),
-    model,
-    sizeof(model),
-    description,
-    sizeof(description),
-    version,
-    sizeof(version),
-    uri,
-    sizeof(uri),
-    serial,
-    sizeof(serial)
-};
-
-static bool device_attached = false;
-static void* device_handle = NULL;
-
-l_bool read_in_progress = false;
-uint32_t read_size = 0;
-l_u8 read_buffer[USB_BUFFER_SIZE];
-
-l_bool write_in_progress = false;
-uint32_t write_size = 0;
-l_u8 write_buffer[USB_BUFFER_SIZE];
 
 enum l_schedule_handle current_schedule = configuration_schedule;
 
@@ -115,15 +57,9 @@ static void master_task_5ms()
     }
 }
 
-static char str[64];
 int main()
 {
-    {
-        unsigned int pll_startup_counter = 600;
-        CLKDIVbits.PLLEN = 1;
-        while (pll_startup_counter--) {
-        }
-    }
+    ev_master_aoa_initialize(); 
 
     // Initialize the LIN interface
     if (l_sys_init())
@@ -137,19 +73,6 @@ int main()
     // Set UART RX to interrupt level 4
     struct l_irqmask irqmask = { 4, 4 };
     l_sys_irq_restore(irqmask);
-
-    // Setup the AOA and USB
-    AndroidAppStart(&device_info);
-    USBHostInit(0);
-
-    TRISBbits.TRISB8 = 0;
-    TRISBbits.TRISB9 = 0;
-    TRISAbits.TRISA0 = 0; // D4
-    TRISAbits.TRISA1 = 0; // D5
-    TRISAbits.TRISA2 = 0; // D6
-    TRISAbits.TRISA3 = 0; // D7
-
-    Lcd_Init();
 
     // Setup a 5ms timer
     T1CONbits.TON = 1;
@@ -167,117 +90,8 @@ int main()
     current_schedule = configuration_schedule;
     l_sch_set_UART1(current_schedule, 0);
 
-    uint8_t error_code;
-
     while (true) {
-        USBHostTasks();
-        AndroidTasks();
-
-        if (!device_attached)
-            continue;
-
-        if (read_in_progress) {
-            if (AndroidAppIsReadComplete(device_handle, &error_code, &read_size)) {
-                read_in_progress = false;
-            }
-        } else {
-            uint32_t index = 0;
-            while (index < read_size) {
-                struct usb_message* message = (struct usb_message*)(read_buffer + index);
-                index += sizeof(struct usb_message_header) + message->header.length;
-
-                // TODO check command
-                switch (message->header.sid) {
-                case HEAD_LIGHT_STATE_SID: {
-                    l_u8_wr_head_light_state(*((l_u8*)message->data));
-                    break;
-                }
-                case SIGNAL_LIGHT_STATE_SID: {
-                    l_u8_wr_signal_light_state(*((l_u8*)message->data));
-                    break;
-                }
-                }
-            }
-
-            if (device_attached) {
-                read_in_progress = (AndroidAppRead(device_handle, read_buffer, USB_BUFFER_SIZE) == USB_SUCCESS);
-            }
-        }
-
-        if (!device_attached)
-            continue;
-
-        if (write_in_progress) {
-            uint32_t size;
-            if (AndroidAppIsWriteComplete(device_handle, &error_code, &size)) {
-                if (size != write_size) {
-                    // TODO error??
-                }
-                write_size = 0;
-                write_in_progress = false;
-            }
-        } else {
-            while (write_size < (USB_BUFFER_SIZE - MAX_USB_MESSAGE_SIZE)) {
-                struct usb_message* message = (struct usb_message*)(write_buffer + write_size);
-                message->header.comm = USBMESSAGE_COMM_SET_VAR;
-                if (l_flg_tst_motor_controller_duty_cycle()) {
-                    l_flg_clr_motor_controller_duty_cycle();
-                    message->header.sid = MOTOR_CONTROLLER_DUTY_CYCLE_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_motor_controller_duty_cycle();
-                    write_size += sizeof(struct usb_message_header) + message->header.length;
-
-                    Lcd_Clear();
-                    sprintf(str, "%lx", message->header.sid);
-                    Lcd_Set_Cursor(1, 1);
-                    Lcd_Write_String(str);
-
-                    sprintf(str, "%x", *((l_u16*)message->data));
-                    Lcd_Set_Cursor(2, 1);
-                    Lcd_Write_String(str);
-                } else if (l_flg_tst_motor_controller_igbt_temperature()) {
-                    l_flg_clr_motor_controller_igbt_temperature();
-                    message->header.sid = MOTOR_CONTROLLER_IGBT_TEMPERATURE_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_motor_controller_igbt_temperature();
-                    write_size += sizeof(struct usb_message_header) + message->header.length;
-                } /*else if (l_flg_tst_axle_rpm()) {
-                    write_size += sizeof(struct usb_message_header);
-                    l_flg_clr_axle_rpm();
-                    message->header.sid = AXLE_RPM_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_axle_rpm();
-                    write_size += message->header.length;
-                } else if (l_flg_tst_battery_voltage()) {
-                    write_size += sizeof(struct usb_message_header);
-                    l_flg_clr_battery_voltage();
-                    message->header.sid = BATTERY_VOLTAGE_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_battery_voltage();
-                    write_size += message->header.length;
-                } else if (l_flg_tst_usage_current()) {
-                    write_size += sizeof(struct usb_message_header);
-                    l_flg_clr_usage_current();
-                    message->header.sid = USAGE_CURRENT_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_usage_current();
-                    write_size += message->header.length;
-                } else if (l_flg_tst_charging_current()) {
-                    write_size += sizeof(struct usb_message_header);
-                    l_flg_clr_charging_current();
-                    message->header.sid = CHARGING_CURRENT_SID;
-                    message->header.length = 2;
-                    *((l_u16*)message->data) = l_u16_rd_charging_current();
-                    write_size += message->header.length;
-                } */ else {
-                    break;
-                }
-            }
-
-            if (device_attached && write_size > 0) {
-                write_in_progress = (AndroidAppWrite(device_handle, write_buffer, write_size) == USB_SUCCESS);
-            }
-        }
+        ev_master_aoa_update();
     }
     return -1;
 }
@@ -303,43 +117,6 @@ void l_sys_irq_restore(struct l_irqmask previous)
     IEC0bits.U1TXIE = 1;
 }
 
-bool usb_application_event_handler(uint8_t address, USB_EVENT event, void* data, uint32_t size)
-{
-    switch ((int)event) {
-    case EVENT_VBUS_REQUEST_POWER: {
-        if (((USB_VBUS_POWER_EVENT_DATA*)data)->current <= (MAX_ALLOWED_CURRENT / 2))
-            return true;
-        break;
-    }
-    case EVENT_VBUS_RELEASE_POWER:
-    case EVENT_HUB_ATTACH:
-    case EVENT_UNSUPPORTED_DEVICE:
-    case EVENT_CANNOT_ENUMERATE:
-    case EVENT_CLIENT_INIT_ERROR:
-    case EVENT_OUT_OF_MEMORY:
-    case EVENT_UNSPECIFIED_ERROR:
-    case EVENT_DETACH:
-    case EVENT_ANDROID_DETACH: {
-        device_attached = false;
-        return true;
-    }
-    case EVENT_ANDROID_ATTACH: {
-        device_attached = true;
-        device_handle = data;
-        return true;
-    }
-    default: {
-        break;
-    }
-    }
-    return false;
-}
-
-bool usb_application_data_event_handler(uint8_t address, USB_EVENT event, void* data, uint32_t size)
-{
-    return false;
-}
-
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt()
 {
     if (IFS0bits.T1IF) {
@@ -362,9 +139,4 @@ void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt()
         IFS0bits.U1RXIF = 0;
         l_ifc_rx_UART1();
     }
-}
-
-void __attribute__((interrupt, auto_psv)) _USB1Interrupt()
-{
-    USB_HostInterruptHandler();
 }

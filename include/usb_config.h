@@ -1,3 +1,6 @@
+#ifndef USB_CONFIG_H
+#define USB_CONFIG_H
+
 #define _USB_CONFIG_VERSION_MAJOR 0
 #define _USB_CONFIG_VERSION_MINOR 0
 #define _USB_CONFIG_VERSION_DOT 12
@@ -36,3 +39,5 @@
     {                    \
         USBHostInit(x);  \
     }
+
+#endif //USB_CONFIG_H
