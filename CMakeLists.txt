@@ -8,18 +8,20 @@ set(SOURCES
     src/usb_config.c
 
     gen/ev_master.c
+    gen/ev_master_aoa.c
 
     /opt/microchip/mla/framework/usb/src/usb_host.c
     /opt/microchip/mla/framework/usb/src/usb_host_android.c
 )
 
 set(HEADERS
-    include/system_config.h
+    include/aoa_communication.h
     include/system.h
+    include/system_config.h
     include/usb_config.h
-    include/usb_message.h
 
     gen/ev_master.h
+    gen/ev_master_aoa.h
 
     /opt/microchip/mla/framework/usb/inc/usb_host.h
     /opt/microchip/mla/framework/usb/inc/usb_host_android.h
