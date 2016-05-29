@@ -37,6 +37,7 @@
 #include <ev_master.h>
 #include <ev_master_aoa.h>
 #include <xc.h>
+#include <libpic30.h>
 
 enum l_schedule_handle current_schedule = configuration_schedule;
 
@@ -89,31 +90,6 @@ int main()
 
     current_schedule = configuration_schedule;
     l_sch_set_UART1(current_schedule, 0);
-
-    //Accelerometer setup.
-    TRISBbits.TRISB8 = 1;
-    __builtin_write_OSCCONL(OSCCON & ~(1<<6));
-    RPINR7bits.IC1R = 8;
-    __builtin_write_OSCCONL(OSCCON | (1<<6));
-    T2CONbits.T32 = 0;
-    T2CONbits.TCKPS = 1;
-    T2CONbits.TGATE = 0;
-    T2CONbits.TCS = 0;
-    PR2 = 0xFFFF;
-    T2CONbits.TON = 1;
-    while(IC1CON1bits.ICBNE != 0)
-        (unsigned int)IC1BUF;
-    IC1CON1bits.ICSIDL = 0x00;
-    IC1CON1bits.ICTSEL = 0x07;
-    IC1CON1bits.ICI    = 0x00;
-    IC1CON1bits.ICM    = 0x03;
-    IC1CON2bits.IC32 = 0x00;
-    IC1CON2bits.ICTRIG = 0x01;
-    IC1CON2bits.SYNCSEL = 0b01100;
-            
-    IEC0bits.IC1IE = 1;
-    IPC0bits.IC1IP = 3;
-    IC1TMR = 0;
     
     while (true) {
         ev_master_aoa_update();
@@ -147,19 +123,6 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt()
     if (IFS0bits.T1IF) {
         IFS0bits.T1IF = 0;
         master_task_5ms();
-    }
-}
-
-void __attribute__((interrupt,no_auto_psv)) _IC1Interrupt() {
-    if(IFS0bits.IC1IF) {
-        IFS0bits.IC1IF = 0;
-        if(IC1CON1bits.ICM == 0x03) {
-            IC1CON1bits.ICM = 0x02;
-            TMR2 = 0;
-        } else if(IC1CON1bits.ICM == 0x02) {
-            IC1CON1bits.ICM = 0x03;
-            l_u16_wr_x_acceleration(TMR2);
-        }
     }
 }
 
