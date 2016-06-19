@@ -5,15 +5,15 @@
                    displayName="Header Files"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="LIN" projectFiles="true">
-        <itemPath>../gen/ev_master.h</itemPath>
+        <itemPath>gen/ev_master.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="USB" projectFiles="true">
         <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host.h</itemPath>
         <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host_android.h</itemPath>
-        <itemPath>../include/system.h</itemPath>
-        <itemPath>../include/usb_config.h</itemPath>
-        <itemPath>../include/system_config.h</itemPath>
-        <itemPath>../gen/ev_master_aoa.h</itemPath>
+        <itemPath>include/system.h</itemPath>
+        <itemPath>include/usb_config.h</itemPath>
+        <itemPath>include/system_config.h</itemPath>
+        <itemPath>gen/ev_master_aoa.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -24,28 +24,27 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="LIN" projectFiles="true">
-        <itemPath>../gen/ev_master.c</itemPath>
+        <itemPath>gen/ev_master.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="USB" projectFiles="true">
         <itemPath>/opt/microchip/mla/framework/usb/src/usb_host.c</itemPath>
         <itemPath>/opt/microchip/mla/framework/usb/src/usb_host_android.c</itemPath>
-        <itemPath>../src/usb_config.c</itemPath>
-        <itemPath>../gen/ev_master_aoa.c</itemPath>
+        <itemPath>src/usb_config.c</itemPath>
+        <itemPath>gen/ev_master_aoa.c</itemPath>
       </logicalFolder>
-      <itemPath>../src/main.c</itemPath>
+      <itemPath>src/main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
-      <itemPath>../ev_master.ncf</itemPath>
+      <itemPath>ev_master.ncf</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../gen</Elem>
-    <Elem>../src</Elem>
     <Elem>gen</Elem>
-    <Elem>../include</Elem>
+    <Elem>src</Elem>
+    <Elem>include</Elem>
     <Elem>/opt/microchip/mla/framework/usb/inc</Elem>
     <Elem>/opt/microchip/mla/framework/usb/src</Elem>
   </sourceRootList>
@@ -59,7 +58,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.25</languageToolchainVersion>
+        <languageToolchainVersion></languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -77,7 +76,7 @@
       </compileType>
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o ../gen -aoa ../ev_master.ncf ../../MotorControllerNode/motor_controller.ncf ../../LightingNode/lighting.ncf ../../EnergyManagementNode/energy_management.ncf ../../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o gen -aoa ev_master.ncf ../MotorControllerNode/motor_controller.ncf ../LightingNode/lighting.ncf ../EnergyManagementNode/energy_management.ncf ../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
@@ -194,7 +193,7 @@
       </C30-LD>
       <C30Global>
         <property key="common-include-directories"
-                  value="../gen;../include;/opt/microchip/mla/framework/usb/inc"/>
+                  value="gen;include;/opt/microchip/mla/framework/usb/inc"/>
         <property key="dual-boot-partition" value="0"/>
         <property key="fast-math" value="false"/>
         <property key="generic-16-bit" value="false"/>
