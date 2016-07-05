@@ -125,19 +125,3 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt()
         master_task_5ms();
     }
 }
-
-void __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt()
-{
-    if (IFS0bits.U1TXIF) {
-        IFS0bits.U1TXIF = 0;
-        l_ifc_tx_UART1();
-    }
-}
-
-void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt()
-{
-    if (IFS0bits.U1RXIF) {
-        IFS0bits.U1RXIF = 0;
-        l_ifc_rx_UART1();
-    }
-}
