@@ -4,17 +4,29 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <logicalFolder name="f2" displayName="LIN" projectFiles="true">
-        <itemPath>gen/ev_master.h</itemPath>
+      <logicalFolder name="f2" displayName="LIN Generated Files" projectFiles="true">
+        <itemPath>lin_generated_files/ev_master.h</itemPath>
+        <itemPath>lin_generated_files/ev_master_aoa.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f1" displayName="USB" projectFiles="true">
-        <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host.h</itemPath>
-        <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host_android.h</itemPath>
-        <itemPath>include/system.h</itemPath>
-        <itemPath>include/usb_config.h</itemPath>
-        <itemPath>include/system_config.h</itemPath>
-        <itemPath>gen/ev_master_aoa.h</itemPath>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
+        <itemPath>mcc_generated_files/traps.h</itemPath>
+        <itemPath>mcc_generated_files/mcc.h</itemPath>
+        <itemPath>mcc_generated_files/tmr1.h</itemPath>
+        <itemPath>mcc_generated_files/uart1.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f1" displayName="MLA" projectFiles="true">
+        <logicalFolder name="f1" displayName="USB" projectFiles="true">
+          <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host.h</itemPath>
+          <itemPath>/opt/microchip/mla/framework/usb/inc/usb_host_android.h</itemPath>
+        </logicalFolder>
+      </logicalFolder>
+      <itemPath>system.h</itemPath>
+      <itemPath>system_config.h</itemPath>
+      <itemPath>usb_config.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,22 +35,35 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="f2" displayName="LIN" projectFiles="true">
-        <itemPath>gen/ev_master.c</itemPath>
+      <logicalFolder name="f2" displayName="LIN Generated Files" projectFiles="true">
+        <itemPath>lin_generated_files/ev_master.c</itemPath>
+        <itemPath>lin_generated_files/ev_master_aoa.c</itemPath>
       </logicalFolder>
-      <logicalFolder name="f1" displayName="USB" projectFiles="true">
-        <itemPath>/opt/microchip/mla/framework/usb/src/usb_host.c</itemPath>
-        <itemPath>/opt/microchip/mla/framework/usb/src/usb_host_android.c</itemPath>
-        <itemPath>src/usb_config.c</itemPath>
-        <itemPath>gen/ev_master_aoa.c</itemPath>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/traps.c</itemPath>
+        <itemPath>mcc_generated_files/mcc.c</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.c</itemPath>
+        <itemPath>mcc_generated_files/tmr1.c</itemPath>
+        <itemPath>mcc_generated_files/uart1.c</itemPath>
       </logicalFolder>
-      <itemPath>src/main.c</itemPath>
+      <logicalFolder name="f1" displayName="MLA" projectFiles="true">
+        <logicalFolder name="f1" displayName="USB" projectFiles="true">
+          <itemPath>/opt/microchip/mla/framework/usb/src/usb_host.c</itemPath>
+          <itemPath>/opt/microchip/mla/framework/usb/src/usb_host_android.c</itemPath>
+        </logicalFolder>
+      </logicalFolder>
+      <itemPath>usb_config.c</itemPath>
+      <itemPath>main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
       <itemPath>ev_master.ncf</itemPath>
+      <itemPath>ev_master.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -47,6 +72,7 @@
     <Elem>include</Elem>
     <Elem>/opt/microchip/mla/framework/usb/inc</Elem>
     <Elem>/opt/microchip/mla/framework/usb/src</Elem>
+    <Elem>lin_generated_files</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -58,7 +84,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.25</languageToolchainVersion>
+        <languageToolchainVersion></languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -76,7 +102,7 @@
       </compileType>
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
-        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -o gen -aoa ev_master.ncf ../MotorControllerNode/motor_controller.ncf ../LightingNode/lighting.ncf ../EnergyManagementNode/energy_management.ncf ../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
+        <makeCustomizationPreStep>LIN -t ${Device} -i uart1 -mcc -o lin_generated_files -aoa ev_master.ncf ../MotorControllerNode/motor_controller.ncf ../LightingNode/lighting.ncf ../EnergyManagementNode/energy_management.ncf ../SpeedometerNode/speedometer.ncf</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
@@ -193,7 +219,7 @@
       </C30-LD>
       <C30Global>
         <property key="common-include-directories"
-                  value="gen;include;/opt/microchip/mla/framework/usb/inc"/>
+                  value="/opt/microchip/mla/framework/usb/inc;."/>
         <property key="dual-boot-partition" value="0"/>
         <property key="fast-math" value="false"/>
         <property key="generic-16-bit" value="false"/>
