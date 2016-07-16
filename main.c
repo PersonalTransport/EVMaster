@@ -40,19 +40,6 @@ int main()
     struct l_irqmask irqmask = { 4, 4 };
     l_sys_irq_restore(irqmask);
 
-    /*// Setup a 5ms timer
-    T1CONbits.TON = 1;
-    T1CONbits.TSIDL = 0;
-    T1CONbits.TGATE = 0;
-    T1CONbits.TCKPS = 1;
-    T1CONbits.TSYNC = 0;
-    T1CONbits.TCS = 0;
-    PR1 = FCY / 8ul / 200ul;
-
-    // Set timer interrupt level to 5
-    IEC0bits.T1IE = 1;
-    IPC0bits.T1IP = 5;*/
-
     current_schedule = configuration_schedule;
     l_sch_set_UART1(current_schedule, 0);
     
@@ -82,11 +69,3 @@ void l_sys_irq_restore(struct l_irqmask previous)
     IFS0bits.U1RXIF = 0;
     IEC0bits.U1TXIE = 1;
 }
-
-/*void __attribute__((interrupt, no_auto_psv)) _T1Interrupt()
-{
-    if (IFS0bits.T1IF) {
-        IFS0bits.T1IF = 0;
-        master_task_5ms();
-    }
-}*/
